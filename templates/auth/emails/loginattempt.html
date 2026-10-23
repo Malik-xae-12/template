@@ -1,0 +1,23 @@
+{% extends 'Emails/base.html' %}
+{% block header %}
+Dear {{user}},
+{% endblock %}
+{% block content %}
+<p>
+    Login attempt was made on <b>
+        {% now "F d, Y h:i A" %}</b>
+</p><br />
+<p>
+    PFB the necessary details.
+</p><br />
+<p>
+    <b>IP Address:</b> {{context.ip}}<br />
+    <b>Operating System:</b> {{context.os}}<br />
+    <b>Device:</b> {{context.device}}<br />
+    <b>Browser:</b> {{context.browser}}<br />
+    <b>Location:</b> <i style="color:green">{{context.location}}</i><br />
+</p><br />
+<p>
+    If this isn't you, we suggest changing your password as soon as possible.
+</p>
+{% endblock %}

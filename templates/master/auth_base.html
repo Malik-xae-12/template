@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <title>{% block title %}  Application {% endblock %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:url" content="https://ubtiinc.com" />
+    <link rel="shortcut icon" href="{%  static 'icon.jpg' %}" type="image/svg+xml">
+
+    {% include 'Layouts/css.html' %}
+    {% block css %}
+    <style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        background-image: url("{% static 'bg.png' %}");
+        background-size: 100% 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+    .form {
+        width: 35%;
+        margin: 0 auto;
+    }
+    </style>
+    {% endblock %}
+    {% include 'Layouts/scripts.html' %}
+    {% block scripts %}
+    {% endblock %}
+</head>
+
+<body>
+    <section class="home-section">
+        <div id="base" class="content">
+            {% block content %}
+            {% endblock content %}
+        </div>
+    </section>
+    <div id="loader" class="spinner">
+    </div>
+    <div class="spacer"></div>
+    </div>
+
+    {% block javascript %}
+    {% endblock javascript %}
+
+</body>
+
+</html>

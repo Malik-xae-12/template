@@ -1,0 +1,785 @@
+{% extends 'master/base.html' %}
+{% load static %}
+{% load helpers %}
+{% load widget_tweaks %}
+{% load compress %}
+
+{% block title %}{{ title|default:"Appointment Lookup" }}{% endblock %}
+
+{% block css %}
+<style>
+    .custom-drop {
+        left: auto !important;
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #1f7a8c;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .content-hidden {
+        display: none;
+    }
+
+    .table-enhanced thead {
+        background: #1f7a8ca1;
+        color: white;
+    }
+
+    .table-enhanced tbody tr:nth-child(odd) {
+        background-color: #ffffff;
+    }
+
+    .table-enhanced tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    /* Custom Multiselect with Checkmarks */
+    .custom-multiselect {
+        position: relative;
+        width: 100%;
+    }
+
+    .custom-multiselect-button {
+        width: 100%;
+        text-align: left;
+        background-color: white;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        height: calc(1.5em + 0.5rem + 2px);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .custom-multiselect-button:after {
+        content: "▼";
+        font-size: 0.7em;
+        color: #6c757d;
+        flex-shrink: 0;
+        margin-left: 8px;
+    }
+
+    .custom-multiselect-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ced4da;
+        border-top: none;
+        border-radius: 0 0 0.25rem 0.25rem;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .custom-multiselect-search {
+        width: 100%;
+        padding: 8px;
+        border: none;
+        border-bottom: 1px solid #eee;
+        font-size: 0.875rem;
+        outline: none;
+    }
+
+    .custom-multiselect-search:focus {
+        border-bottom-color: #1f7a8c;
+    }
+
+    .custom-multiselect-option {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #f8f9fa;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        position: relative;
+        padding-right: 35px; /* Make space for checkmark */
+        transition: all 0.2s ease;
+    }
+
+    .custom-multiselect-option:hover {
+        background-color: #f8f9fa;
+    }
+
+    .custom-multiselect-option.selected {
+        background-color: #e3f2fd !important;
+        color: #1565c0 !important;
+        border-left: 3px solid #1f7a8c;
+        font-weight: 500;
+    }
+
+    /* Checkmark icon for selected items */
+    .custom-multiselect-option.selected::after {
+        content: "✓";
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #2e7d32;
+        font-weight: bold;
+        font-size: 1.2em;
+        text-shadow: 0 0 2px rgba(46, 125, 50, 0.3);
+    }
+
+    /* Optional: Add subtle click animation */
+    .option-clicked {
+        transform: scale(0.98);
+        transition: transform 0.2s ease;
+    }
+
+    .show {
+        display: block !important;
+    }
+
+    /* Selected items display */
+    .selected-items-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: calc(100% - 20px);
+    }
+
+    /* Message styles for empty states */
+    .multiselect-message {
+        color: #6c757d;
+        font-style: italic;
+        padding: 8px 12px;
+        text-align: center;
+    }
+
+    .multiselect-message.error {
+        color: #dc3545;
+    }
+</style>
+<link rel="stylesheet" href="{% static 'vendor/bs-stepper.min.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/notyf.min.css' %}">
+{% endblock %}
+
+{% block javascript %}
+{% compress js %}
+<script src="{% static 'vendor/notyf.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Initialize global storage for selected values
+    window.selectedValues = {};
+    
+    // Only show spinner on initial load without parameters
+    if (!hasUrlParameters()) {
+        showLoadingSpinner();
+        
+        setTimeout(function() {
+            $('.content-container').removeClass('content-hidden');
+            hideLoadingSpinner();
+            setTimeout(initCustomMultiselect, 200);
+        }, 500);
+    } else {
+        $('.content-container').removeClass('content-hidden');
+        initCustomMultiselect();
+    }
+
+    window.notyf_success = new Notyf({
+        duration: 4000,
+        position: { x: 'right', y: 'top' },
+        types: [{ type: 'success', background: '#28a745' }]
+    });
+    window.notyf_error = new Notyf({
+        duration: 4000,
+        position: { x: 'right', y: 'top' },
+        types: [{ type: 'error', background: '#dc3545' }]
+    });
+
+    // Close dropdowns when clicking outside
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.custom-multiselect').length) {
+            $('.custom-multiselect-dropdown').removeClass('show');
+        }
+    });
+
+    $(document).on('click', '.pagination a.page-link', function(e) {
+        e.preventDefault();
+        var url = $(this).attr('href');
+        if (url && !$(this).parent().hasClass('disabled')) {
+            var currentFilters = getCurrentFilters();
+            var urlParams = url.split('?')[1];
+            if (urlParams) {
+                applyFilter(currentFilters + '&' + urlParams);
+            }
+        }
+    });
+
+    $(document).on('click', '#clearFilterBtn', function(e) {
+        e.preventDefault();
+        clearFilter();
+    });
+
+    // Consolidated submit handler
+    $(document).on('submit', '#filterform', function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        let queryParams = new URLSearchParams();
+        
+        // Handle multiselect fields - send each selected value as a separate parameter
+        const multiselectFields = ['urn', 'care_provider', 'patient_name', 'location'];
+        multiselectFields.forEach(field => {
+            const selectedValues = getSelectedValues(field);
+            selectedValues.forEach(value => {
+                queryParams.append(field, value); // Append each value separately
+            });
+        });
+        
+        // Get date field
+        const dateValue = $('#id_start_date').val();
+        if (dateValue) {
+            queryParams.set('start_date', dateValue);
+        }
+        
+        applyFilter(queryParams.toString());
+    });
+});
+
+function initCustomMultiselect() {
+    const fields = [
+        { id: 'urn', placeholder: 'Search URNs...', label: 'URN' },
+        { id: 'care_provider', placeholder: 'Search Care Providers...', label: 'Care Provider' },
+        { id: 'patient_name', placeholder: 'Search Patient Names...', label: 'Patient Name' },
+        { id: 'location', placeholder: 'Search Locations...', label: 'Location' }
+    ];
+
+    fields.forEach(field => {
+        createCustomMultiselect(field.id, field.placeholder, field.label);
+    });
+
+    // Restore selected values from URL parameters or preserved state
+    restoreSelectedValues();
+}
+
+function createCustomMultiselect(fieldId, placeholder, label) {
+    const $container = $(`#${fieldId}_container`);
+    
+    // Create multiselect HTML with enhanced styling
+    const multiselectHtml = `
+        <div class="custom-multiselect" data-field="${fieldId}">
+            <button type="button" class="custom-multiselect-button">
+                <span class="selected-items-text">${placeholder}</span>
+            </button>
+            <div class="custom-multiselect-dropdown">
+                <input type="text" class="custom-multiselect-search" placeholder="${placeholder}" />
+                <div class="options-container"></div>
+            </div>
+        </div>
+    `;
+    
+    $container.html(multiselectHtml);
+    
+    const $multiselect = $container.find('.custom-multiselect');
+    const $button = $multiselect.find('.custom-multiselect-button');
+    const $dropdown = $multiselect.find('.custom-multiselect-dropdown');
+    const $search = $multiselect.find('.custom-multiselect-search');
+    const $optionsContainer = $multiselect.find('.options-container');
+    
+    // Toggle dropdown
+    $button.on('click', function(e) {
+        e.stopPropagation();
+        $('.custom-multiselect-dropdown').not($dropdown).removeClass('show');
+        $dropdown.toggleClass('show');
+        if ($dropdown.hasClass('show')) {
+            $search.val(''); // Clear search when opening
+            $search.focus();
+            // Load previously selected options when opening dropdown
+            loadSelectedOptions(fieldId, $optionsContainer);
+        }
+    });
+    
+    // Search functionality
+    let searchTimeout;
+    $search.on('input', function() {
+        const query = $(this).val();
+        clearTimeout(searchTimeout);
+        
+        if (query.length >= 2) {
+            searchTimeout = setTimeout(() => {
+                searchOptions(fieldId, query, $optionsContainer);
+            }, 300);
+        } else {
+            // When search is cleared, show selected options
+            loadSelectedOptions(fieldId, $optionsContainer);
+        }
+    });
+    
+    // Enhanced option click handler
+    $optionsContainer.on('click', '.custom-multiselect-option', function(e) {
+        e.stopPropagation();
+        const $option = $(this);
+        
+        // Skip if it's a message (no data-value)
+        if (!$option.data('value')) {
+            return;
+        }
+        
+        const optionValue = $option.data('value').toString();
+        
+        // Get current global selections
+        if (!window.selectedValues) {
+            window.selectedValues = {};
+        }
+        if (!window.selectedValues[fieldId]) {
+            window.selectedValues[fieldId] = [];
+        }
+        
+        // Toggle selection in global storage
+        const currentIndex = window.selectedValues[fieldId].indexOf(optionValue);
+        if (currentIndex > -1) {
+            // Remove from selections
+            window.selectedValues[fieldId].splice(currentIndex, 1);
+            $option.removeClass('selected');
+            $option.attr('title', 'Click to select');
+        } else {
+            // Add to selections
+            window.selectedValues[fieldId].push(optionValue);
+            $option.addClass('selected');
+            $option.attr('title', 'Selected - Click to deselect');
+        }
+        
+        // Update button text
+        updateButtonText(fieldId);
+        
+        // Add subtle animation effect
+        $option.addClass('option-clicked');
+        setTimeout(() => {
+            $option.removeClass('option-clicked');
+        }, 200);
+    });
+}
+
+function searchOptions(fieldId, query, $container) {
+    $.ajax({
+        url: "{% url 'ajax_search_appointments' %}",
+        data: {
+            term: query,
+            field: fieldId
+        },
+        success: function(data) {
+            $container.empty();
+            
+            if (data.results && data.results.length > 0) {
+                data.results.forEach(function(item) {
+                    // Check if this option should be selected from global storage
+                    const isSelected = (window.selectedValues && window.selectedValues[fieldId]) 
+                        ? window.selectedValues[fieldId].includes(item.id.toString())
+                        : false;
+                    
+                    const selectedClass = isSelected ? 'selected' : '';
+                    const title = isSelected ? 'Selected - Click to deselect' : 'Click to select';
+                        
+                    const optionHtml = `
+                        <div class="custom-multiselect-option ${selectedClass}" data-value="${item.id}" title="${title}">
+                            <span>${item.text}</span>
+                        </div>
+                    `;
+                    $container.append(optionHtml);
+                });
+            } else {
+                $container.append('<div class="multiselect-message">No results found</div>');
+            }
+        },
+        error: function() {
+            $container.append('<div class="multiselect-message error">Search failed</div>');
+        }
+    });
+}
+
+function loadSelectedOptions(fieldId, $container) {
+    // Get current selections from global storage
+    let currentSelections = [];
+    if (window.selectedValues && window.selectedValues[fieldId]) {
+        currentSelections = [...window.selectedValues[fieldId]];
+    }
+    
+    $container.empty();
+    
+    if (currentSelections.length > 0) {
+        currentSelections.forEach(value => {
+            const optionHtml = `
+                <div class="custom-multiselect-option selected" data-value="${value}" title="Selected - Click to deselect">
+                    <span>${value}</span>
+                </div>
+            `;
+            $container.append(optionHtml);
+        });
+    } else {
+        $container.append('<div class="multiselect-message">No selections</div>');
+    }
+}
+
+// Separate function to update button text based on global storage
+function updateButtonText(fieldId) {
+    const selectedValues = window.selectedValues && window.selectedValues[fieldId] ? window.selectedValues[fieldId] : [];
+    const $textElement = $(`[data-field="${fieldId}"] .custom-multiselect-button .selected-items-text`);
+    
+    if (selectedValues.length === 0) {
+        const placeholder = $(`[data-field="${fieldId}"] .custom-multiselect-search`).attr('placeholder');
+        $textElement.text(placeholder);
+    } else if (selectedValues.length === 1) {
+        $textElement.text(selectedValues[0]);
+    } else {
+        $textElement.text(`${selectedValues.length} selected`);
+    }
+}
+
+function isOptionSelected(fieldId, value) {
+    // Check global storage first
+    if (window.selectedValues && window.selectedValues[fieldId]) {
+        return window.selectedValues[fieldId].includes(value.toString());
+    }
+    return false;
+}
+
+function getSelectedValues(fieldId) {
+    // Get values from global storage
+    if (window.selectedValues && window.selectedValues[fieldId]) {
+        return window.selectedValues[fieldId];
+    }
+    return [];
+}
+
+function updateSelectedText(fieldId) {
+    // This function is now replaced by updateButtonText for consistency
+    updateButtonText(fieldId);
+}
+
+function restoreSelectedValues() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fields = ['urn', 'care_provider', 'patient_name', 'location'];
+    
+    fields.forEach(fieldId => {
+        let selectedValues = [];
+        
+        // Check if we have preserved values (from filter application)
+        if (window.selectedValues && window.selectedValues[fieldId]) {
+            selectedValues = window.selectedValues[fieldId];
+        } else {
+            // Otherwise get from URL parameters
+            const urlValues = urlParams.getAll(fieldId);
+            if (urlValues.length > 0) {
+                selectedValues = urlValues.filter(v => v.trim());
+            }
+        }
+        
+        if (selectedValues.length > 0) {
+            // Store selected values globally
+            if (!window.selectedValues) {
+                window.selectedValues = {};
+            }
+            window.selectedValues[fieldId] = selectedValues;
+            
+            // Update button text
+            updateButtonText(fieldId);
+        }
+    });
+}
+
+function getCurrentFilters() {
+    let queryParams = new URLSearchParams();
+    
+    // Get multiselect values
+    const fields = ['urn', 'care_provider', 'patient_name', 'location'];
+    fields.forEach(field => {
+        const selectedValues = getSelectedValues(field);
+        selectedValues.forEach(value => {
+            queryParams.append(field, value);
+        });
+    });
+    
+    // Get date field
+    const dateValue = $('#id_start_date').val();
+    if (dateValue) {
+        queryParams.set('start_date', dateValue);
+    }
+    
+    return queryParams.toString();
+}
+
+function hasUrlParameters() {
+    return window.location.search.length > 0;
+}
+
+function clearFilter() {
+    showLoadingSpinner();
+
+    // Clear the form
+    var filterForm = $('#filterform');
+    if (filterForm.length) {
+        filterForm[0].reset();
+    }
+
+    $('#id_start_date').val('');
+
+    // Clear global selected values storage
+    window.selectedValues = {};
+
+    // Clear all custom multiselect fields
+    $('.custom-multiselect-option.selected').removeClass('selected');
+    $('.custom-multiselect-button .selected-items-text').each(function() {
+        const $multiselect = $(this).closest('.custom-multiselect');
+        const placeholder = $multiselect.find('.custom-multiselect-search').attr('placeholder');
+        $(this).text(placeholder);
+    });
+
+    $.ajax({
+        url: "{% url 'appointment_list' %}",
+        method: 'GET',
+        data: { initial_load: 'true' },
+        dataType: 'html',
+        success: function(response) {
+            var $response = $(response);
+            var newTable = $response.find('.table-responsive');
+            var newPagination = $response.find('.pagination-container');
+            if (newTable.length) {
+                $('.table-responsive').replaceWith(newTable);
+            }
+            if (newPagination.length) {
+                $('.pagination-container').replaceWith(newPagination);
+            }
+
+            hideLoadingSpinner();
+            $('.content-container').removeClass('content-hidden');
+            window.notyf_success.success('Filters cleared successfully.');
+        },
+        error: function(xhr, status, error) {
+            hideLoadingSpinner();
+            console.error('Clear filter error:', error);
+            window.notyf_error.error('An error occurred while clearing filters.');
+        }
+    });
+}
+
+function applyFilter(queryString) {
+    // Save current selected values before applying filter
+    const currentSelections = {};
+    const fields = ['urn', 'care_provider', 'patient_name', 'location'];
+    fields.forEach(field => {
+        currentSelections[field] = getSelectedValues(field);
+    });
+    
+    showLoadingSpinner();
+    
+    $.ajax({
+        url: "{% url 'appointment_list' %}",
+        data: queryString,
+        method: 'GET',
+        dataType: 'html',
+        success: function(response) {
+            var $response = $(response);
+            var newTable = $response.find('.table-responsive');
+            var newPagination = $response.find('.pagination-container');
+            if (newTable.length) {
+                $('.table-responsive').replaceWith(newTable);
+            }
+            if (newPagination.length) {
+                $('.pagination-container').replaceWith(newPagination);
+            }
+
+            hideLoadingSpinner();
+            $('.content-container').removeClass('content-hidden');
+            
+            // Preserve selected values before reinitializing
+            window.selectedValues = currentSelections;
+            
+            // Reinitialize multiselect fields after content replacement
+            setTimeout(function() {
+                initCustomMultiselect();
+            }, 200);
+            
+            window.notyf_success.success('Appointments filtered successfully.');
+        },
+        error: function(xhr, status, error) {
+            hideLoadingSpinner();
+            console.error('Filter error:', error);
+            window.notyf_error.error('An error occurred while filtering appointments.');
+        }
+    });
+}
+
+function showLoadingSpinner() {
+    $('#loading-overlay').show();
+    $('.content-container').addClass('content-hidden');
+}
+
+function hideLoadingSpinner() {
+    $('#loading-overlay').fadeOut(200);
+}
+</script>
+{% endcompress %}
+{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<div id="loading-overlay" class="loading-overlay">
+    <div class="spinner"></div>
+</div>
+
+<div class="content-container content-hidden">
+    <nav aria-label="breadcrumb" class="mt-3 position-sticky">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'home' %}" class="text-decoration-none">
+                    <i class="fa fa-home"></i>&nbsp;Home
+                </a>
+            </li>
+            <li class="breadcrumb-item">Appointments</li>
+            <li class="breadcrumb-item">List</li>
+        </ol>
+    </nav>
+
+    <div class="row mt-2 justify-content-between">
+        <div class="col-sm-4 mt-2">
+            <h4><b>Appointment List</b></h4>
+        </div>
+        <div class="col-sm-4 text-end mt-2">
+            <small class="text-muted">Total Records: {{ appointments.paginator.count }}</small>
+        </div>
+    </div>
+
+    <div class="row m-2 mb-2 p-2 justify-content-between" style="background-color:#1f7a8ca1">
+        <div class="col-sm-12">
+            <form action="{% url 'appointment_list' %}" class="row align-items-end" id="filterform" method="GET">
+                {% csrf_token %}
+                <div class="col-sm-2 mb-2">
+                    <label class="form-label small text-white mb-1">URN</label>
+                    <div id="urn_container"></div>
+                </div>
+                <div class="col-sm-2 mb-2">
+                    <label class="form-label small text-white mb-1">Care Provider</label>
+                    <div id="care_provider_container"></div>
+                </div>
+                <div class="col-sm-2 mb-2">
+                    <label class="form-label small text-white mb-1">Patient Name</label>
+                    <div id="patient_name_container"></div>
+                </div>
+                <div class="col-sm-2 mb-2">
+                    <label class="form-label small text-white mb-1">Location</label>
+                    <div id="location_container"></div>
+                </div>
+                <div class="col-sm-2 mb-2">
+                    <label class="form-label small text-white mb-1">Appointment Date</label>
+                    {% render_field filter.form.start_date class="form-control form-control-sm" type="date" %}
+                </div>
+                <div class="col-sm-2 d-flex justify-content-end gap-2 mb-2">
+                    <button type="submit" class="btn btn-text live-theme btn-sm">
+                        <i class="fa fa-filter"></i> Apply
+                    </button>
+                    <button type="button" id="clearFilterBtn" class="btn btn-danger btn-sm">
+                        <i class="fa fa-filter-circle-xmark"></i> Clear
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-enhanced" style="margin-top:10px;">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-hashtag me-2"></i>URN</th>
+                    <th><i class="fas fa-user-md me-2"></i>CARE PROVIDER</th>
+                    <th><i class="fas fa-user me-2"></i>PATIENT NAME</th>
+                    <th><i class="fas fa-venus-mars me-2"></i>GENDER</th>
+                    <th><i class="fas fa-map-marker-alt me-2"></i>LOCATION</th>
+                    <th><i class="fas fa-calendar-alt me-2"></i>APPOINTMENT DATE</th>
+                    <th><i class="fas fa-clock me-2"></i>Visit TimeStamp</th>
+                    <th class="text-center"><i class="fas fa-pills me-2"></i>DrugAdmin</th>
+                    <th class="text-center"><i class="fas fa-file-medical me-2"></i>EPR</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments %}
+                <tr>
+                    <td>{{ appointment.urn }}</td>
+                    <td>{{ appointment.care_provider }}</td>
+                    <td>{{ appointment.patient_name|default:"-" }}</td>
+                    <td>{{ appointment.gender|default:"-" }}</td>
+                    <td>{{ appointment.location }}</td>
+                    <td>{{ appointment.start_date|date:"Y-m-d"|default:"-" }}</td>
+                    <td>{{ appointment.timestamp|date:"Y-m-d H:i" }}</td>
+                    <td class="text-center">
+                    {% if appointment.drugadmin_any %}
+                        <a href="{% url 'appointment_pdf_list' 'drugadmin' appointment.urn appointment.start_date|date:'Y-m-d' %}" title="DrugAdmin PDFs">
+                        <i class="fas fa-file-pdf"></i>
+                        </a>
+                    {% else %}-{% endif %}
+                    </td>
+                    <td class="text-center">
+                    {% if appointment.epr_any %}
+                        <a href="{% url 'appointment_pdf_list' 'epr' appointment.urn appointment.start_date|date:'Y-m-d' %}" title="EPR PDFs">
+                        <i class="fas fa-file-pdf"></i>
+                        </a>
+                    {% else %}-{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">No appointments found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-container clearfix m-2 d-flex justify-content-between align-items-center">
+        <ul class="pagination">
+            <li class="page-item {% if not appointments.has_previous %}disabled{% endif %}">
+                <a class="page-link" href="{% if appointments.has_previous %}?page={{ appointments.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}{% endif %}">Previous</a>
+            </li>
+            {% for page_number in appointments.paginator.page_range %}
+            {% if page_number <= appointments.number|add:5 and page_number >= appointments.number|add:-5 %}
+            <li class="page-item {% if appointments.number == page_number %}active{% endif %}">
+                <a href="?page={{ page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">
+                    {{ page_number }}
+                </a>
+            </li>
+            {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not appointments.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{% if appointments.has_next %}?page={{ appointments.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}{% endif %}">Next</a>
+            </li>
+        </ul>
+        <div class="ms-auto">
+            Showing {{ appointments.start_index }} to {{ appointments.end_index }} of <span class="rounded-circle live-theme p-1">{{ appointments.paginator.count }}</span> entries.
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

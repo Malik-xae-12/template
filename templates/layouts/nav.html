@@ -1,0 +1,171 @@
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
+{% endblock %}
+{% block javascript %}
+<script>
+$(document).ready(() => {
+    // Nested Dropdown Menu's Logic
+    $(".dropdown-menu [data-bs-toggle='dropdown']").on("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        $(this).parents(".dropdown-menu").first().find(".show").removeClass("show");
+        $(this).parents(".dropdown-menu").first().find("[aria-expanded='true']").attr("aria-expanded", false);
+        $(this).siblings(".dropdown-menu").toggleClass("show");
+        $(this)
+            .parents(".nav-item.dropdown")
+            .on("hidden.bs.dropdown", function (e) {
+                $(".dropdown-submenu .show").removeClass("show");
+                $(".dropdown-submenu [aria-expanded='true']").attr("aria-expanded", false);
+            });
+    });
+});
+</script>
+{% endblock %}
+
+<div class="live-theme sticky-top" style="color: var(--theme-text-color);">
+    <header class="d-flex align-items-center justify-content-between py-2 px-3">
+        {% if user.is_authenticated %}
+        <!-- Left: Logo + Theme Changer -->
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-sm rounded-pill bx-menu d-flex align-items-center justify-content-center" 
+                    style="width: 40px; height: 40px;">
+                <i class="fa fa-bars live-theme"></i>
+            </button>
+            <a href="/" class="d-flex align-items-center text-white text-decoration-none">
+                <img src="{% static 'logo.png' %}" height="50" alt="Logo Here"/>
+            </a>
+            <!-- Theme Changer Dropdown -->
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item dropdown hover-disable">
+                    <a class="btn btn-block justify-content-start rounded-pill live-theme" href="#" id="navbarDropdown"
+                        role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                        <i class="fa fa-box"></i>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li class="dropdown-submenu dropend">
+                            <a href="#" role="button" class="dropdown-item" data-bs-toggle="dropdown"
+                                data-bs-auto-close="outside" aria-expanded="false"><i class="fa fa-font"></i>&nbsp;Font
+                                Changer</a>
+                            <ul class="dropdown-menu dropdown-submenu">
+                                <ul class="color-grid" id="themeGrid">
+                                    <li class="font-option is-selected"
+                                        data-font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif">
+                                        Abc</li>
+                                    <li class="font-option" data-font-family="'Courier New', Courier, monospace">Abc</li>
+                                    <li class="font-option" data-font-family="Arial, Helvetica, sans-serif">Abc</li>
+                                    <li class="font-option" data-font-family="'Times New Roman', Times, serif">Abc</li>
+                                </ul>
+                            </ul>
+                        </li>
+                        <li class="dropdown-submenu dropend">
+                            <a href="#" role="button" class="dropdown-item" data-bs-auto-close="outside"
+                                data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-palette"></i>&nbsp;Theme
+                                Changer</a>
+                            <ul class="dropdown-menu dropdown-submenu">
+                                <ul class="color-grid" id="themeGrid">
+                                    <li class="color-option is-selected" data-bg-color="#194a8e" data-text-color="white">
+                                    </li>
+                                    <li class="color-option" data-bg-color="#5B00B7" data-text-color=""></li>
+                                    <li class="color-option" data-bg-color="#3a68b7" data-text-color=""></li>
+                                    <li class="color-option" data-bg-color="#34b7b0" data-text-color=""></li>
+                                    <li class="color-option" data-bg-color="#4f8f44" data-text-color=""></li>
+                                    <li class="color-option" data-bg-color="#c0582f" data-text-color=""></li>
+                                    <li class="color-option" data-bg-color="#a83030" data-text-color=""></li>
+                                    <li class="color-option" data-bg-color="#994385" data-text-color=""></li>
+                                    <li class="color-option" data-theme-name="dark" data-bg-color="#ffffff"
+                                        data-text-color="black">
+                                    </li>
+                                    <li class="color-option" data-theme-name="dark" data-bg-color="#000000"
+                                        data-text-color="white">
+                                    </li>
+                                </ul>
+                            </ul>
+                        </li>
+
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Center: About Link -->
+        <div class="d-flex align-items-center justify-content-center flex-grow-1">
+            <!-- About Link -->
+            <a href="https://kanadhospital.org/"  target="_blank" class="nav-link text-decoration-none" style="color: var(--theme-text-color);">
+                <h1 class="text-white">TrakCare Business Continuity Portal</h1>
+            </a>
+        </div>
+
+        <!-- Right: Welcome Message + Profile Dropdown -->
+        <div class="d-flex align-items-center gap-3">
+            <!-- Welcome Message -->
+            <span class="text-white">Welcome, {{user}}</span>
+            <div class="nav-item dropdown hover-disable">
+                <a class="nav-link dropdown-toggle text-white d-flex align-items-center" 
+                   href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img id="profileImage" 
+                         style="border-radius: 50%; width: 35px; height: 35px; object-fit: cover;" 
+                         alt="Profile Image" src="{{ user.profile.avatar }}" />
+                </a>
+                <div class="dropdown-menu dropdown-menu-end custom-nav" aria-labelledby="profileDropdown" style="min-width: 200px;">
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item d-flex align-items-center" href="{% url 'profile' %}" target="_blank">
+                        <i class="fa fa-user me-2"></i> <span>Your Profile</span>
+                    </a>
+                    {% if user.is_superuser %}
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item d-flex align-items-center" href="/admin" target="_blank">
+                        <i class="fa fa-user-secret me-2"></i> <span>Admin Panel</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    {% endif %}
+                    <!-- <a class="dropdown-item d-flex align-items-center" href="{% url 'password_change' %}" target="_blank">
+                        <i class="fa fa-key me-2"></i> <span>Change Password</span>
+                    </a> -->
+                    <a class="dropdown-item d-flex align-items-center" href="{% url 'logout' %}">
+                        <i class="fa fa-power-off me-2"></i> <span>Sign Out</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Non-authenticated buttons -->
+        <div class="col-md-3 text-end pe-2">
+            {% if title == 'Register' %}
+            <a href="{% url 'login' %}" role="button" class="btn btn-sm btn-outline-light me-2">Login</a>
+            {% endif %}
+            {% if title == 'Login' %}
+            <a role="button" href="{% url 'register' %}" class="btn btn-sm btn-primary">Sign-up</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </header>
+</div>
+{% if user.is_authenticated %}
+<div class="sidebar close">
+    <nav class="mt-5">
+        <ul class="nav-links">
+            <li>
+                <a href="{% url 'patient_report' %}" class="d-flex align-items-center">
+                    <i class='fa fa-user-md me-3' style="width: 20px;"></i>
+                    <span class="link_name">Patient Report Lookup</span>
+                </a>
+                <ul class="sub-menu blank">
+                    <li><a class="link_name" href="{% url 'patient_report' %}">Patient Report Lookup</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="{% url 'appointment_list' %}" class="d-flex align-items-center">
+                    <i class='fa fa-list me-3' style="width: 20px;"></i>
+                    <span class="link_name">Appointment List</span>
+                </a>
+                <ul class="sub-menu blank">
+                    <li><a class="link_name" href="{% url 'appointment_list' %}">Appointment List</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+</div>
+<script src="{% static 'js/sidebar.js' %}"></script>
+{% endif %}

@@ -1,0 +1,879 @@
+{% extends 'master/base.html' %}
+{% load static %}
+{% load helpers %}
+{% load compress %}
+
+{% block title %}{{ title|default:"Patient Report & Lookup" }}{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/notyf.min.css' %}">
+<link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/jquery.dataTables.min.css' %}">
+<style>
+    .card-body-left, .card-body-right {
+        display: flex;
+        flex-direction: column;
+    }
+    #find_patient_form {
+        flex-grow: 1;
+    }
+    #display_report_form {
+        min-height: 150px;
+        display: flex;
+        flex-direction: column;
+    }
+    #display_report_form .mb-3 {
+        flex-grow: 1;
+    }
+    #display_report_form .d-grid {
+        margin-top: auto;
+    }
+    .card-body-right {
+        height: auto;
+    }
+    #records_section table, #history_section table {
+        table-layout: auto;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    #patient_records_body, #patient_history_body {
+        max-height: inherit;
+    }
+    .search-bar {
+        margin-bottom: 10px;
+    }
+    .search-bar input {
+        width: 200px;
+        margin-left: 10px;
+    }
+    
+    /* PDF Icon Styles */
+    .pdf-icon {
+        color: #dc3545;
+        font-size: 18px;
+        margin-right: 8px;
+    }
+    
+    .pdf-link {
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        color: #dc3545;
+        font-weight: 500;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+    
+    .pdf-link:hover {
+        background-color: #f8f9fa;
+        color: #dc3545;
+        transform: translateY(-1px);
+    }
+    
+    /* Table Styles for Grouped Reports */
+    .table-enhanced {
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        width: 100%;
+    }
+    
+    .table-enhanced tbody tr:nth-child(odd) {
+        background-color: #ffffff;
+    }
+    
+    .table-enhanced tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+    
+    .table-enhanced thead th {
+        font-weight: 600;
+        padding: 15px;
+        text-align: center;
+        border: none;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .table-enhanced tbody td {
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+    
+    .table-enhanced tbody tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .date-time-cell {
+        font-weight: 500;
+        color: #495057;
+    }
+    
+    .pdf-cell {
+        min-width: 120px;
+    }
+    
+    .no-pdf {
+        color: #6c757d;
+        font-style: italic;
+    }
+    /* Full-width section */
+    #available_reports_section {
+        margin-top: 20px;
+    }
+    
+    /* PDF Viewer Styles */
+    .pdf-viewer-container {
+        margin-top: 20px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .pdf-viewer-container iframe {
+        width: 100%;
+        height: 1500px;
+        border: none;
+    }
+    
+    .pdf-viewer-container.hidden {
+        display: none;
+    }
+    
+    .pdf-viewer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8f9fa;
+        padding: 10px;
+        border-bottom: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% compress js %}
+{% block javascript %}
+<script src="{% static 'vendor/notyf.min.js' %}"></script>
+<script src="{% static 'vendor/jquery.dataTables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Initialize Notyf for notifications
+    window.notyf_success = new Notyf({
+        duration: 4000,
+        position: { x: 'right', y: 'top' },
+        types: [{ type: 'success', background: '#28a745' }]
+    });
+    window.notyf_error = new Notyf({
+        duration: 4000,
+        position: { x: 'right', y: 'top' },
+        types: [{ type: 'error', background: '#dc3545' }]
+    });
+
+    // Initialize form elements
+    const displayRadio = $('#display_report');
+    const findRadio = $('#find_patient');
+    const displayForm = $('#display_report_form');
+    const findForm = $('#find_patient_form');
+    const patientIdInput = $('#id_patient_id');
+    const dateField = $('#date-field');
+    const reportTableContainer = $('#report_table_container');
+    const reportErrorAlert = $('#report_error_alert');
+    const patientRecordsBody = $('#patient_records_body');
+    const patientHistoryBody = $('#patient_history_body');
+    const recordsRadio = $('#records_view');
+    const historyRadio = $('#history_view');
+    const recordsSection = $('#records_section');
+    const historySection = $('#history_section');
+    const searchInput = $('#searchInput');
+
+    // Initially show date field (no toggle needed)
+    dateField.show();
+
+    // Function to toggle forms based on radio button selection
+    function toggleForms() {
+        if (displayRadio.is(':checked')) {
+            displayForm.show();
+            findForm.hide();
+        } else if (findRadio.is(':checked')) {
+            displayForm.hide();
+            findForm.show();
+        }
+    }
+
+    // Function to toggle right-side content based on radio button selection
+    function toggleRightContent() {
+        if (recordsRadio.is(':checked')) {
+            recordsSection.show();
+            historySection.hide();
+        } else if (historyRadio.is(':checked')) {
+            recordsSection.hide();
+            historySection.show();
+        }
+    }
+
+    // Bind radio button change events
+    displayRadio.on('change', toggleForms);
+    findRadio.on('change', toggleForms);
+    recordsRadio.on('change', toggleRightContent);
+    historyRadio.on('change', toggleRightContent);
+
+    // Initial toggles
+    toggleForms();
+    toggleRightContent();
+
+    /* Handle PDF link clicks without pre-tracking (single request path) */
+    $(document)
+    .off('click.viewer', '.view-pdf-link')
+    .on('click.viewer', '.view-pdf-link', function(e) {
+        e.preventDefault();
+
+        const $link = $(this);
+
+        // simple debounce against rapid double clicks
+        if ($link.data('busy')) return;
+        $link.data('busy', true);
+        setTimeout(() => { $link.removeData('busy'); }, 800);
+
+        const pdfUrl = $link.data('pdf-url'); // this is the tracked endpoint now
+        if (!pdfUrl) {
+            console.warn('No PDF URL on link');
+            return;
+        }
+        showPDFViewer(pdfUrl);
+    });
+
+    // Add this function after your existing functions
+    function initializeReportTable() {
+        // Check if the table exists and has data
+        if ($('#grouped_report_table').length && $('#grouped_report_table tbody tr').length > 0) {
+            $('#grouped_report_table').DataTable({
+                destroy: true,
+                searching: false,
+                paging: true,
+                pageLength: 5,
+                info: false,
+                lengthChange: false,
+                ordering: false,
+                autoWidth: false,
+                language: {
+                    paginate: {
+                        previous: '<i class="fas fa-chevron-left"></i>',
+                        next: '<i class="fas fa-chevron-right"></i>'
+                    },
+                    emptyTable: "No reports available"
+                },
+                columnDefs: [
+                    { width: "35%", targets: 0 },   // Folder Path
+                    { width: "12%", targets: 1 },   // Date
+                    { width: "12%", targets: 2 },   // Time
+                    { width: "20%", targets: 3 },   // DrugAdmin
+                    { width: "20%", targets: 4 }    // EPR
+                ]
+            });
+        }
+    }
+
+
+    // Handle Close Button
+    $(document).on('click', '#close-pdf-btn', function() {
+        $('#pdf-viewer').attr('src', '');
+        $('.pdf-viewer-container').addClass('hidden');
+    });
+
+    function showPDFViewer(pdfUrl) {
+        const pdfViewerUrl = "{% static 'pdfjs/web/viewer.html' %}?file=" + encodeURIComponent(pdfUrl);
+        const iframe = $('#pdf-viewer');
+
+        // ensure only one load handler is attached
+        iframe.off('load.viewer').on('load.viewer', function() {
+            setTimeout(function() {
+                try {
+                    const iframeDoc = iframe[0].contentDocument || iframe[0].contentWindow.document;
+
+                    const customCSS = `
+                        <style id="custom-pdf-css">
+                            #download, #secondaryDownload,
+                            #openFile, #secondaryOpenFile {
+                                display: none !important;
+                                visibility: hidden !important;
+                            }
+                            button[title*="Download"], button[title*="Save"] {
+                                display: none !important;
+                            }
+                            .pdfViewer {
+                                -webkit-user-select: none;
+                                -moz-user-select: none;
+                                user-select: none;
+                            }
+                        </style>
+                    `;
+                    if (!iframeDoc.getElementById('custom-pdf-css')) {
+                        iframeDoc.head.insertAdjacentHTML('beforeend', customCSS);
+                    }
+
+                    ['#download', '#secondaryDownload', '#openFile', '#secondaryOpenFile'].forEach(selector => {
+                        const btn = iframeDoc.querySelector(selector);
+                        if (btn) {
+                            btn.style.display = 'none';
+                            btn.style.visibility = 'hidden';
+                        }
+                    });
+
+                    iframeDoc.addEventListener('contextmenu', function(ev) {
+                        ev.preventDefault();
+                        return false;
+                    });
+
+                    iframeDoc.addEventListener('keydown', function(ev) {
+                        if (ev.ctrlKey && (ev.key === 's' || ev.key === 'S')) {
+                            ev.preventDefault();
+                            return false;
+                        }
+                    });
+                    console.log('PDF.js UI adjusted');
+                } catch (e) {
+                    console.log('Could not modify PDF.js (CORS):', e);
+                }
+            }, 1200);
+        });
+
+        iframe.attr('src', pdfViewerUrl);
+
+        $('.pdf-viewer-container').removeClass('hidden');
+        $('html, body').animate({ scrollTop: $('.pdf-viewer-container').offset().top }, 500);
+    }
+
+    function handleUrnClick() {
+        $(document).on('click', '.clickable-row', function(event) {
+            event.stopPropagation();
+            const urn = $(this).data('urn');
+            const date = $(this).data('date');
+
+            if (displayRadio.is(':checked')) {
+                if (patientIdInput.length) {
+                    patientIdInput.val(urn).focus();
+                    // Set the date field if it exists and has a valid date
+                    const dateInput = $('#id_date');
+                    if (dateInput.length && date !== 'None') {
+                        dateInput.val(date).trigger('change');
+                    }
+                    window.notyf_success.success('URN selected: ' + urn);
+                }
+            } else {
+                displayRadio.prop('checked', true).trigger('change');
+                if (patientIdInput.length) {
+                    patientIdInput.val(urn).focus();
+                    // Set the date field if it exists and has a valid date
+                    const dateInput = $('#id_date');
+                    if (dateInput.length && date !== 'None') {
+                        dateInput.val(date).trigger('change');
+                    }
+                    window.notyf_success.success('Switched to Display Report and selected URN: ' + urn);
+                }
+            }
+        });
+    }
+
+    // Handle Display Report Form submission via AJAX
+    function handleReportSearch() {
+        $('#report_search_form').on('submit', function(e) {
+            e.preventDefault();
+
+            // Close any opened PDFs first
+            $('#pdf-viewer').attr('src', '');
+            $('.pdf-viewer-container').addClass('hidden');
+            const formData = new FormData(this);
+            formData.append('submit_id', 'submit_id');
+
+            reportErrorAlert.hide();
+            let availableReportsSection = $('#available_reports_section');
+            if (availableReportsSection.length === 0) {
+                const loadingSection = $(`
+                    <div class="mt-4" id="available_reports_section">
+                        <div class="text-center p-4 border rounded bg-light">
+                            <i class="fas fa-spinner fa-spin fa-2x text-primary mb-3"></i>
+                            <p class="mb-0 text-muted">Loading Available Reports...</p>
+                        </div>
+                    </div>
+                `);
+                $('.container-fluid').append(loadingSection);
+            } else {
+                availableReportsSection.show().html(`
+                    <div class="text-center p-4 border rounded bg-light">
+                        <i class="fas fa-spinner fa-spin fa-2x text-primary mb-3"></i>
+                        <p class="mb-0 text-muted">Loading Available Reports...</p>
+                    </div>
+                `);
+            }
+
+            $.ajax({
+                url: "{% url 'patient_report' %}",
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(response, 'text/html');
+                    const newReportTableContainer = $(doc).find('#report_table_container');
+                    const newPatientHistoryBody = $(doc).find('#patient_history_body').html();
+
+                    if (newReportTableContainer.length > 0 && newReportTableContainer.html().trim() !== '') {
+                        const tableHtml = newReportTableContainer.html();
+                        $('#available_reports_section').html(tableHtml);
+                        
+                        // Initialize DataTable after content is loaded
+                        setTimeout(() => {
+                            initializeReportTable();
+                        }, 100);
+                        
+                        const reportCount = $('#available_reports_section tbody tr').length;
+                        if (reportCount > 0) {
+                            window.notyf_success.success(`${reportCount} report group(s) found for the patient.`);
+                        } else {
+                            $('#available_reports_section').html(`
+                                <div class="text-center p-4 border rounded bg-light">
+                                    <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                                    <p class="mb-0 text-muted">No reports found for this patient.</p>
+                                </div>
+                            `);
+                            window.notyf_error.error('Report not found. Please check your URN.');
+                        }
+                    } else {
+                        $('#available_reports_section').html(`
+                            <div class="text-center p-4 border rounded bg-light">
+                                <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                                <p class="mb-0 text-muted">No reports found for this patient.</p>
+                            </div>
+                        `);
+                        window.notyf_error.error('Report not found. Please check your URN.');
+                    }
+
+                    // Update patient history only
+                    if (newPatientHistoryBody) {
+                        patientHistoryBody.html(newPatientHistoryBody);
+                    }
+                    $('#report_search_form')[0].reset();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    $('#available_reports_section').html(`
+                        <div class="text-center p-4 border rounded bg-light">
+                            <i class="fas fa-exclamation-circle fa-2x text-danger mb-3"></i>
+                            <p class="mb-0 text-muted">Error loading reports. Please try again.</p>
+                        </div>
+                    `);
+                    window.notyf_error.error('An error occurred while fetching the report. Please try again.');
+                }
+            });
+        });
+    }
+
+    // Handle Find Patient ID Form submission via AJAX
+    function handlePatientLookup() {
+        $('#patient_lookup_form').on('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            formData.append('submit_details', 'submit_details');
+
+            patientRecordsBody.html('<tr><td colspan="4" class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Loading...</td></tr>');
+            patientHistoryBody.html('<tr><td colspan="3" class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Loading...</td></tr>');
+            $.ajax({
+                url: "{% url 'patient_report' %}",
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(response, 'text/html');
+                    const newPatientRecordsBody = $(doc).find('#patient_records_body').html();
+                    const newPatientHistoryBody = $(doc).find('#patient_history_body').html();
+
+                    if (newPatientRecordsBody) patientRecordsBody.html(newPatientRecordsBody);
+                    if (newPatientHistoryBody) patientHistoryBody.html(newPatientHistoryBody);
+
+                    const recordCount = $('#patient_records_body tr.clickable-row').length;
+                    if (recordCount > 0) {
+                        window.notyf_success.success(`Patient found! ${recordCount} record(s) retrieved.`);
+                    } else if ($('#patient_records_body').text().includes("GraphQL internal error occurred")) {
+                        window.notyf_error.error('GraphQL internal error');
+                    } else {
+                        patientRecordsBody.html('<tr><td colspan="4" class="text-center">No records found</td></tr>');
+                        window.notyf_error.error('No matching patient found.');
+                    }
+                    // Reset the patient lookup form
+                    $('#patient_lookup_form')[0].reset();
+                    recordsRadio.prop('checked', true).trigger('change');
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    patientRecordsBody.html('<tr><td colspan="4" class="text-center">Error loading records</td></tr>');
+                    patientHistoryBody.html('<tr><td colspan="3" class="text-center">Error loading history</td></tr>');
+                    window.notyf_error.error('An error occurred while fetching patient records. Please try again.');
+                    // Reset the patient lookup form even on error
+                    $('#patient_lookup_form')[0].reset();
+                }
+            });
+        });
+    }
+
+    // Search functionality
+    searchInput.on('input', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        const rows = $('#patient_records_body tr.clickable-row');
+
+        rows.each(function() {
+            const urn = $(this).find('td:eq(0)').text().toLowerCase();        
+            const name = $(this).find('td:eq(1)').text().toLowerCase();       
+            const mobile = $(this).find('td:eq(2)').text().toLowerCase();     
+            const emiratesId = $(this).find('td:eq(3)').text().toLowerCase(); 
+            
+            if (urn.includes(searchTerm) || name.includes(searchTerm) || 
+                mobile.includes(searchTerm) || emiratesId.includes(searchTerm)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+
+    // Initialize handlers
+    handleUrnClick();
+    handleReportSearch();
+    handlePatientLookup();
+});
+</script>
+{% endblock %}
+{% endcompress %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<div class="container-fluid mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'home' %}" class="text-decoration-none">
+                    <i class="fas fa-home"></i> Home
+                </a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">{{ title|default:"Patient Report & Lookup" }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Left Side: Form -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header live-theme text-white text-center py-3">
+                    <h4 class="mb-0 fw-bold">Patient Services</h4>
+                </div>
+                <div class="card-body card-body-left p-4">
+                    <!-- Radio Buttons -->
+                    <div class="d-flex justify-content-center mb-4">
+                        <div class="btn-group" role="group" aria-label="Form Selection">
+                            <input type="radio" class="btn-check" name="form_selector" id="display_report" value="display" checked>
+                            <label class="btn btn-outline-secondary fw-bold px-4 py-2" for="display_report">
+                                <i class="fas fa-file-alt me-2"></i>Display Report
+                            </label>
+                            <input type="radio" class="btn-check" name="form_selector" id="find_patient" value="find">
+                            <label class="btn btn-outline-secondary fw-bold px-4 py-2" for="find_patient">
+                                <i class="fas fa-user-search me-2"></i>Find URN
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Display Report Form -->
+                    <div id="display_report_form">
+                        <form method="POST" id="report_search_form">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                {% for field in report_search_form %}
+                                    {% if field.name == 'date' %}
+                                        <div class="mb-3">
+                                            {{ field.label_tag }}
+                                            {{ field }}
+                                            {% if field.errors %}
+                                                {% for error in field.errors %}
+                                                    <div class="invalid-feedback">{{ error }}</div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    {% elif field.name == 'patient_id' %}
+                                        <div class="mb-3">
+                                            {{ field.label_tag }}
+                                            {{ field }}
+                                            {% if field.errors %}
+                                                {% for error in field.errors %}
+                                                    <div class="invalid-feedback">{{ error }}</div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Enter your URN (and optionally a date) to display report
+                                </small>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" name="submit_id" class="btn live-theme fw-bold py-2 text-white">
+                                    <i class="fas fa-eye me-2"></i>Display Report
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Find Patient ID Form -->
+                    <div id="find_patient_form" style="display: none;">
+                        <form method="POST" id="patient_lookup_form">
+                            {% csrf_token %}
+                            <div class="row mb-3">
+                                {% for field in patient_lookup_form %}
+                                    {% if field.name == 'first_name' %}
+                                        <div class="col-md-6 mb-3">
+                                            {{ field.label_tag }}
+                                            {{ field }}
+                                            {% if field.errors %}
+                                                {% for error in field.errors %}
+                                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    {% elif field.name == 'last_name' %}
+                                        <div class="col-md-6 mb-3">
+                                            {{ field.label_tag }}
+                                            {{ field }}
+                                            {% if field.errors %}
+                                                {% for error in field.errors %}
+                                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    {% elif field.name == 'dob' %}
+                                        <div class="col-md-6 mb-3">
+                                            {{ field.label_tag }}
+                                            {{ field }}
+                                            {% if field.errors %}
+                                                {% for error in field.errors %}
+                                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    {% elif field.name == 'mobile' %}
+                                        <div class="col-md-6 mb-3">
+                                            {{ field.label_tag }}
+                                            {{ field }}
+                                            {% if field.errors %}
+                                                {% for error in field.errors %}
+                                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="mb-3">
+                                            {{ field.label_tag }}
+                                            {{ field }}
+                                            {% if field.errors %}
+                                                {% for error in field.errors %}
+                                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted mb-3 d-block">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Fill in your details to find your URN
+                            </small>
+                            <div class="d-grid">
+                                <button type="submit" name="submit_details" class="btn live-theme fw-bold py-2 text-white">
+                                    <i class="fas fa-search me-2"></i>Lookup Patient
+                                </button>
+                            </div>
+                        </form>
+                        {% if no_patient_found %}
+                        <div class="alert alert-danger mt-3" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-1">No Patient Found</h6>
+                                    <p class="mb-0">No patient records found for the provided details. Please check and try again.</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Toggleable Content -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header live-theme text-white d-flex justify-content-center align-items-center py-3 position-relative">
+                    <h4 class="mb-0 fw-bold">Patient Data</h4>
+                    <div class="search-bar position-absolute end-0 me-3">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search ..." style="width: 200px; margin-top: 10px">
+                    </div>
+                </div>
+                <div class="card-body card-body-right p-4" style="max-height: 433px; overflow: auto;">
+                    <!-- Radio Buttons for Toggle -->
+                    <div class="d-flex justify-content-center mb-4">
+                        <div class="btn-group" role="group" aria-label="Data View Selection">
+                            <input type="radio" class="btn-check" name="data_view" id="records_view" value="records" checked>
+                            <label class="btn btn-outline-secondary fw-bold px-4 py-2" for="records_view">
+                                <i class="fas fa-list me-2"></i>Records
+                            </label>
+                            <input type="radio" class="btn-check" name="data_view" id="history_view" value="history">
+                            <label class="btn btn-outline-secondary fw-bold px-4 py-2" for="history_view">
+                                <i class="fas fa-history me-2"></i>History
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Records Section -->
+                    <div id="records_section">
+                        <table class="table table-hover table-bordered" id="patient_records_table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">URN</th>
+                                    <th scope="col">Patient Name</th>
+                                    <th scope="col">Mobile Number</th>
+                                    <th scope="col">Emirates ID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patient_records_body">
+                                {% if error_message == "GraphQL internal error" %}
+                                    <tr>
+                                        <td colspan="4" class="text-center">GraphQL internal error occurred</td>
+                                    </tr>
+                                {% elif patient_records %}
+                                    {% for record in patient_records %}
+                                    <tr class="clickable-row" data-urn="{{ record.PAPMI_No }}" data-date="{{ record.report_date|date:'Y-m-d'|default:'None' }}">
+                                        <td>{{ record.PAPMI_No|default:"N/A" }}</td>
+                                        <td>{{ record.full_name|default:"N/A" }}</td>
+                                        <td>{{ record.PAPMI_MobPhone|default:"N/A" }}</td>
+                                        <td>{{ record.PAPMI_ID|default:"N/A" }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center">No patient records found</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center">No records found</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- History Section -->
+                    <div id="history_section" style="display: none;">
+                        <table class="table table-hover table-bordered" id="patient_history_table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">URN</th>
+                                    <th scope="col">Username</th>
+                                    <th scope="col">Report Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patient_history_body">
+                                {% for record in patient_report_history %}
+                                <tr class="clickable-row" data-urn="{{ record.urn }}" data-date="{{ record.report_date|date:'Y-m-d'|default:'None' }}">
+                                    <td>{{ record.urn }}</td>
+                                    <td>{{ request.user.username }}</td>
+                                    <td>{{ record.report_date|date:"Y-m-d"|default:"No Date" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No report history found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Reports Section (Full Width) -->
+    <div id="available_reports_section">
+        {% if grouped_reports %}
+        <div class="mt-4" id="report_table_container">
+            <table class="table table-enhanced live-theme text-white" id="grouped_report_table">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-folder me-2"></i>Folder Path</th>
+                        <th><i class="fas fa-calendar-alt me-2"></i>Date</th>
+                        <th><i class="fas fa-clock me-2"></i>Time</th>
+                        <th class="text-center"><i class="fas fa-pills me-2"></i>DrugAdmin</th>
+                        <th class="text-center"><i class="fas fa-file-medical me-2"></i>EPR</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for timestamp_key, group in grouped_reports.items %}
+                    <tr>
+                        <td class="text-start" style="color:black">{{ group.folder_path }}</td>
+                        <td class="date-time-cell">{{ group.date }}</td>
+                        <td class="date-time-cell">{{ group.time }}</td>
+                        <td class="text-center pdf-cell">
+                            {% if group.drugadmin %}
+                                <a href=""
+                                role="button"
+                                class="view-pdf-link pdf-link"
+                                data-pdf-url="{% url 'patient_report_pdf_access' urn=report_search_form.patient_id.value relative_path=group.drugadmin.rel_path %}"
+                                title="View DrugAdmin PDF">
+                                    <i class="fas fa-file-pdf pdf-icon"></i>
+                                    {{ group.drugadmin.filename }}
+                                </a>
+                            {% else %}
+                                <span class="no-pdf">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center pdf-cell">
+                            {% if group.epr %}
+                                <a href=""
+                                role="button"
+                                class="view-pdf-link pdf-link"
+                                data-pdf-url="{% url 'patient_report_pdf_access' urn=report_search_form.patient_id.value relative_path=group.epr.rel_path %}"
+                                title="View EPR PDF">
+                                    <i class="fas fa-file-pdf pdf-icon"></i>
+                                    {{ group.epr.filename }}
+                                </a>
+                            {% else %}
+                                <span class="no-pdf">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- PDF Viewer Container -->
+    <div class="pdf-viewer-container hidden">
+        <div class="pdf-viewer-header">
+            <span><b>PDF Viewer</b></span>
+            <button type="button" id="close-pdf-btn" class="btn btn-sm btn-danger">
+                <i class="fas fa-times"></i> Close
+            </button>
+        </div>
+        <iframe id="pdf-viewer" src=""></iframe>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

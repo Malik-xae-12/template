@@ -1,0 +1,309 @@
+{% extends 'master/base.html' %}
+{% load static %}
+
+{% block title %}{{ title|default:"PDF List" }}{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/pdf-viewer-custom.css' %}">
+<link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/jquery.dataTables.min.css' %}">
+<style>
+    .table-enhanced tbody tr:nth-child(odd) {
+        background-color: #ffffff;
+    }
+
+    .table-enhanced tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    .table-enhanced thead th {
+        font-weight: 600;
+        padding: 15px;
+        text-align: center;
+        border: none;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .table-enhanced tbody td {
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+
+    .table-enhanced tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .date-time-cell {
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .pdf-viewer-container {
+        margin-top: 20px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .pdf-viewer-container iframe {
+        width: 100%;
+        height: 1500px;
+        border: none;
+    }
+
+    .pdf-viewer-container.hidden {
+        display: none;
+    }
+
+    .pdf-viewer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8f9fa;
+        padding: 10px;
+        border-bottom: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'vendor/notyf.min.js' %}"></script>
+<script src="{% static 'vendor/jquery.dataTables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Initialize Notyf for notifications
+    window.notyf_success = new Notyf({
+        duration: 4000,
+        position: { x: 'right', y: 'top' },
+        types: [{ type: 'success', background: '#28a745' }]
+    });
+    window.notyf_error = new Notyf({
+        duration: 4000,
+        position: { x: 'right', y: 'top' },
+        types: [{ type: 'error', background: '#dc3545' }]
+    });
+
+    // Hide the PDF viewer initially
+    $('.pdf-viewer-container').addClass('hidden');
+
+    // Initialize DataTable for PDF list
+    function initializePDFTable() {
+        if ($('#pdf_list_table').length && $('#pdf_list_table tbody tr').length > 0) {
+            $('#pdf_list_table').DataTable({
+                destroy: true,
+                searching: false,
+                paging: true,
+                pageLength: 5,
+                info: false,
+                lengthChange: false,
+                ordering: false,
+                autoWidth: false,
+                language: {
+                    paginate: {
+                        previous: '<i class="fas fa-chevron-left"></i>',
+                        next: '<i class="fas fa-chevron-right"></i>'
+                    },
+                    emptyTable: "No {{ pdf_type|title }} PDFs available"
+                },
+                columnDefs: [
+                    { width: "25%", targets: 0 }, // PDF Name
+                    { width: "30%", targets: 1 }, // Path
+                    { width: "15%", targets: 2 }, // Date
+                    { width: "15%", targets: 3 }, // Time
+                    { width: "15%", targets: 4 }  // Action
+                ]
+            });
+        }
+    }
+
+    // Call initializePDFTable after document is ready
+    initializePDFTable();
+
+    // Handle click on View PDF link with tracking
+    $(document).on('click', '.view-pdf-link', function(e) {
+        e.preventDefault();
+        
+        const $link = $(this);
+        const trackingUrl = $link.data('tracking-url');
+        const pdfUrl = $link.data('pdf-url');
+        
+        console.log('🎯 DEBUG: Tracking URL:', trackingUrl);
+        console.log('🎯 DEBUG: PDF URL:', pdfUrl);
+        
+        // Simple debounce against rapid double clicks
+        if ($link.data('busy')) return;
+        $link.data('busy', true);
+        setTimeout(() => { $link.removeData('busy'); }, 800);
+
+        // Track the PDF access first with AJAX
+        if (trackingUrl) {
+            $.ajax({
+                url: trackingUrl,
+                method: 'GET',
+                success: function(response) {
+                    console.log('✅ Tracking successful');
+                    showPDFViewer(pdfUrl);
+                },
+                error: function(xhr, status, error) {
+                    console.error('❌ Tracking failed:', error);
+                    showPDFViewer(pdfUrl);
+                    window.notyf_error.error('Failed to track PDF access, but displaying PDF.');
+                }
+            });
+        } else {
+            console.log('⚠️ No tracking URL found');
+            showPDFViewer(pdfUrl);
+            window.notyf_error.error('No tracking URL found, displaying PDF.');
+        }
+    });
+
+    // Handle Close Button
+    $(document).on('click', '#close-pdf-btn', function() {
+        $('#pdf-viewer').attr('src', '');
+        $('.pdf-viewer-container').addClass('hidden');
+        $('html, body').animate({ scrollTop: 0 }, 500);
+    });
+
+    function showPDFViewer(pdfUrl) {
+        const pdfViewerUrl = "{% static 'pdfjs/web/viewer.html' %}?file=" + encodeURIComponent(pdfUrl);
+        const iframe = $('#pdf-viewer');
+        iframe.attr('src', pdfViewerUrl);
+        
+        iframe.off('load.viewer').on('load.viewer', function() {
+            setTimeout(function() {
+                try {
+                    const iframeDoc = iframe[0].contentDocument || iframe[0].contentWindow.document;
+                    
+                    const customCSS = `
+                        <style id="custom-pdf-css">
+                            #download, #secondaryDownload,  
+                            #openFile, #secondaryOpenFile {
+                                display: none !important;
+                                visibility: hidden !important;
+                            }
+                            
+                            button[title*="Download"], button[title*="Save"] {
+                                display: none !important;
+                            }
+                            
+                            .pdfViewer {
+                                -webkit-user-select: none;
+                                -moz-user-select: none;
+                                user-select: none;
+                            }
+                        </style>
+                    `;
+                    
+                    if (!iframeDoc.getElementById('custom-pdf-css')) {
+                        iframeDoc.head.insertAdjacentHTML('beforeend', customCSS);
+                    }
+                    
+                    ['#download', '#secondaryDownload', '#openFile', '#secondaryOpenFile'].forEach(selector => {
+                        const btn = iframeDoc.querySelector(selector);
+                        if (btn) {
+                            btn.style.display = 'none';
+                            btn.style.visibility = 'hidden';
+                        }
+                    });
+                    
+                    iframeDoc.addEventListener('contextmenu', function(e) {
+                        e.preventDefault();
+                        return false;
+                    });
+                    
+                    iframeDoc.addEventListener('keydown', function(e) {
+                        if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    });
+                    
+                    console.log('✅ PDF.js download/print buttons hidden successfully');
+                    
+                } catch (e) {
+                    console.log('❌ Could not modify PDF.js due to CORS:', e);
+                }
+            }, 1500);
+        });
+        
+        $('.pdf-viewer-container').removeClass('hidden');
+        $('html, body').animate({
+            scrollTop: $('.pdf-viewer-container').offset().top
+        }, 500);
+    }
+});
+</script>
+{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<div class="content-container">
+    <nav aria-label="breadcrumb" class="mt-3 position-sticky">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'home' %}" class="text-decoration-none">
+                    <i class="fa fa-home"></i>&nbsp;Home
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'appointment_list' %}" class="text-decoration-none">
+                    Appointments
+                </a>
+            </li>
+            <li class="breadcrumb-item" aria-current="page">{{ pdf_type|title }} PDFs</li>
+        </ol>
+    </nav>
+
+    <div class="table-responsive">
+        <table class="table table-enhanced live-theme text-white" id="pdf_list_table" style="margin-top:10px;">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-file-pdf me-2"></i>PDF Name</th>
+                    <th><i class="fas fa-folder me-2"></i>Path</th>
+                    <th><i class="fas fa-calendar-alt me-2"></i>Date</th>
+                    <th><i class="fas fa-clock me-2"></i>Time</th>
+                    <th><i class="fas fa-eye me-2"></i>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for folder_path, relative_path, filename, date_str, time_str in report_paths %}
+                <tr style="color:black;">
+                    <td>{{ filename }}</td>
+                    <td>{{ relative_path }}</td>
+                    <td class="date-time-cell">{{ date_str }}</td>
+                    <td class="date-time-cell">{{ time_str }}</td>
+                    <td>
+                        <a href="#" 
+                            class="view-pdf-link" 
+                            data-tracking-url="{% url 'appointment_filter_pdf_access' pdf_type=pdf_type|lower urn=urn path=relative_path|urlencode %}"
+                            data-pdf-url="{% url 'secure_pdf' path=relative_path|urlencode %}"
+                            title="View PDF">
+                            <i class="fas fa-eye text-primary"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No {{ pdf_type|title }} PDFs found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pdf-viewer-container hidden">
+        <div class="pdf-viewer-header d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
+            <span><b>PDF Viewer</b></span>
+            <button type="button" id="close-pdf-btn" class="btn btn-sm btn-danger">
+                <i class="fas fa-times"></i> Close
+            </button>
+        </div>
+        <iframe id="pdf-viewer" src=""></iframe>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

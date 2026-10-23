@@ -1,0 +1,104 @@
+{% load static %} {% load helpers %} {% load compress %}
+<!-- Latest compiled and minified JavaScript -->
+<script src="{% static 'vendor/jquery-3.6.1.min.js' %}"></script>
+<script src="{% static 'vendor/bootstrap.bundle.min.js' %}"></script>
+<!-- Bootstrap Select JS -->
+<script src="{% static 'vendor/bootstrap-select.min.js' %}"></script>
+<!-- <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"
+    integrity="sha256-eTyxS0rkjpLEo16uXTS0uVCS4815lc40K2iVpWDvdSY=" crossorigin="anonymous"></script> -->
+<script src="{% static 'vendor/notyf.min.js' %}"></script>
+<script src="{% static 'vendor/sweetalert2.min.js' %}"></script>
+<!-- Utils -->
+<script src="{% static 'js/utils.min.js' %}"></script>
+<script src="{% static 'js/themeChanger.js' %}"></script>
+
+{% compress js %}
+
+<script>
+    $(document).ready(function () {
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl)
+        })
+        // Create an instance of Notyf
+        window.notyf = new Notyf({
+            position: {
+                x: 'left',
+                y: 'bottom',
+            },
+            types: [{
+                type: 'warning',
+                background: 'orange',
+                icon: {
+                    className: 'fa fa-exclamation-triangle text-danger',
+                    tagName: 'i',
+                }
+            }],
+            duration: 2500,
+        });
+        // $('[data-toggle="tooltip"]').tooltip()
+
+        var elem = document.getElementById('profileImage');
+        var pic = "{{ user.profile.avatar }}"
+        if (!pic) {
+            var src = getInitials('{{user}}')
+            if (elem) elem.src = src;
+        }
+        let formErrors = JSON.parse('{{form.errors|js}}')
+        if (formErrors) {
+            for (const obj in formErrors) {
+                handleMessages(formErrors[obj], 'error')
+            }
+        }
+        let messages = JSON.parse('{{messages|jsonify|escapejs}}') || JSON.parse('{{form.errors}}')
+        if (messages?.success) {
+            handleMessages(messages.success, 'success')
+        } else if (messages?.error) {
+            handleMessages(messages.error, 'error')
+        } else if (messages?.warning) {
+            handleMessages(messages.warning, 'warning')
+        }
+    });
+
+    function displayMessage(msg, level) {
+        level == 'success' ? window.notyf.success(msg) : level == 'error' ? window.notyf.error(msg) : window.notyf.open({
+            type: 'warning',
+            message: msg
+        })
+    }
+    const handleMessages = (messages, mode) => {
+        for (let i = 0; i < messages.length; i++) {
+            displayMessage(messages[i], mode)
+        }
+    }
+    const getInitials = function (name) {
+        var canvas = document.createElement('canvas');
+        canvas.style.display = 'none';
+        canvas.width = '30';
+        canvas.height = '30';
+        document.body.appendChild(canvas);
+        var context = canvas.getContext('2d');
+        context.fillStyle = "#512DA8";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.font = "16px Arial";
+        context.fillStyle = "white";
+        var first, last;
+        if (name && name != '') {
+            first = name[0];
+            last = null;
+            if (last) {
+                var initials = first + last;
+                context.fillText(initials.toUpperCase(), 3, 23);
+            } else {
+                var initials = first;
+                context.fillText(initials.toUpperCase(), 9, 21);
+            }
+            var data = canvas.toDataURL();
+            document.body.removeChild(canvas);
+            return data;
+        } else {
+            return false;
+        }
+    }
+</script>
+{% endcompress %}

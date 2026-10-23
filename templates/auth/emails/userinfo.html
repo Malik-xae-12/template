@@ -1,0 +1,96 @@
+{% extends 'Emails/base.html' %}
+
+{% block header %}
+Dear {{user}},
+{% endblock %}
+{% block content %}
+<table class="table table-user-information">
+    <tbody>
+        <tr>
+            <td>
+                <strong>
+                    FirstName
+                </strong>
+            </td>
+            <td class="text-primary info">
+                {{user.first_name}}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>
+                    Lastname
+                </strong>
+            </td>
+            <td class="text-primary info">
+                {{user.last_name}}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>
+                    Username
+                </strong>
+            </td>
+            <td class="text-primary info">
+                {{user}}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>
+                    Role
+                </strong>
+            </td>
+            <td class="text-primary info">
+                {% if user.is_superuser %}Admin{% else %}Normal
+                User{% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>
+                    Email
+                </strong>
+            </td>
+            <td class="text-primary info">
+                {{user.email}}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>
+                    Created
+                </strong>
+            </td>
+            <td class="text-primary info">
+                {{user.date_joined}}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>
+                    Last Login
+                </strong>
+            </td>
+            <td class="text-primary info">
+                {{user.last_login}}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>
+                    Password
+                </strong>
+            </td>
+            <td class="text-primary info">
+                <strong>{{password}}</strong>
+            </td>
+        </tr>
+    </tbody>
+</table><br />
+<p>PFA the credentials for your account.</p>
+<p>If the password doesn't work, you can reset password by clicking <a
+        href="{{ domain }}{% url 'password_reset' %}">here</a>
+</p>
+{% endblock %}

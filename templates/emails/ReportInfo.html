@@ -1,0 +1,9 @@
+{% extends 'Emails/base.html' %}
+{% block header %}
+Dear Team,
+{% endblock %}
+{% block content %}
+<p>
+    PFA the Candidate Performance Report of {{result.user}}.
+</p>
+{% endblock %}

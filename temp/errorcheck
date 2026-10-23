@@ -1,0 +1,5 @@
+C:\nginx-1.29.1>nginx -t
+nginx: [emerg] cannot load certificate "C:
+ginx-1.29.1\SSL\server.crt": BIO_new_file() failed (SSL: error:8000007B:system library::no protocol option:calling fopen(C:
+ginx-1.29.1\SSL\server.crt, r) error:10080002:BIO routines::system lib)
+nginx: configuration file C:\nginx-1.29.1/conf/nginx.conf test failed

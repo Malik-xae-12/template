@@ -1,0 +1,475 @@
+2025-09-30 17:54:28,531 django.request ERROR    Internal Server Error: /auth/login/
+Traceback (most recent call last):
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: django_site
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "E:\bcp\kanad-bcp-django\apps\accounts\views.py", line 58, in login_user
+    return render(request, 'auth/login.html', {'title': 'Login', 'user': user_cookie})
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 1016, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 977, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 1016, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 977, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 1016, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 977, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\library.py", line 321, in render
+    output = self.func(*resolved_args, **resolved_kwargs)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\templatetags\socialaccount.py", line 21, in provider_login_url
+    provider = adapter.get_provider(request, provider)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\adapter.py", line 212, in get_provider
+    app = self.get_app(request, provider=provider, client_id=client_id)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\adapter.py", line 295, in get_app
+    apps = self.list_apps(request, provider=provider, client_id=client_id)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\adapter.py", line 240, in list_apps
+    db_apps = SocialApp.objects.on_site(request)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\models.py", line 35, in on_site
+    site = get_current_site(request)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\contrib\sites\shortcuts.py", line 16, in get_current_site
+    return Site.objects.get_current(request)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\contrib\sites\models.py", line 59, in get_current
+    return self._get_site_by_id(site_id)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\contrib\sites\models.py", line 30, in _get_site_by_id
+    site = self.get(pk=site_id)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 629, in get
+    num = len(clone)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 366, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 1949, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such table: django_site
+2025-09-30 17:54:36,261 django.request ERROR    Internal Server Error: /auth/login/
+Traceback (most recent call last):
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: django_site
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "E:\bcp\kanad-bcp-django\apps\accounts\views.py", line 58, in login_user
+    return render(request, 'auth/login.html', {'title': 'Login', 'user': user_cookie})
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 1016, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 977, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 1016, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 977, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 1016, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 977, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\library.py", line 321, in render
+    output = self.func(*resolved_args, **resolved_kwargs)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\templatetags\socialaccount.py", line 21, in provider_login_url
+    provider = adapter.get_provider(request, provider)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\adapter.py", line 212, in get_provider
+    app = self.get_app(request, provider=provider, client_id=client_id)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\adapter.py", line 295, in get_app
+    apps = self.list_apps(request, provider=provider, client_id=client_id)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\adapter.py", line 240, in list_apps
+    db_apps = SocialApp.objects.on_site(request)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\models.py", line 35, in on_site
+    site = get_current_site(request)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\contrib\sites\shortcuts.py", line 16, in get_current_site
+    return Site.objects.get_current(request)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\contrib\sites\models.py", line 59, in get_current
+    return self._get_site_by_id(site_id)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\contrib\sites\models.py", line 30, in _get_site_by_id
+    site = self.get(pk=site_id)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 629, in get
+    num = len(clone)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 366, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 1949, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such table: django_site
+2025-09-30 17:55:04,444 django.request ERROR    Internal Server Error: /auth/login/
+Traceback (most recent call last):
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: django_site
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "E:\bcp\kanad-bcp-django\apps\accounts\views.py", line 58, in login_user
+    return render(request, 'auth/login.html', {'title': 'Login', 'user': user_cookie})
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 1016, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 977, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 1016, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 977, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 1016, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 977, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\library.py", line 321, in render
+    output = self.func(*resolved_args, **resolved_kwargs)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\templatetags\socialaccount.py", line 21, in provider_login_url
+    provider = adapter.get_provider(request, provider)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\adapter.py", line 212, in get_provider
+    app = self.get_app(request, provider=provider, client_id=client_id)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\adapter.py", line 295, in get_app
+    apps = self.list_apps(request, provider=provider, client_id=client_id)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\adapter.py", line 240, in list_apps
+    db_apps = SocialApp.objects.on_site(request)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\models.py", line 35, in on_site
+    site = get_current_site(request)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\contrib\sites\shortcuts.py", line 16, in get_current_site
+    return Site.objects.get_current(request)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\contrib\sites\models.py", line 59, in get_current
+    return self._get_site_by_id(site_id)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\contrib\sites\models.py", line 30, in _get_site_by_id
+    site = self.get(pk=site_id)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 629, in get
+    num = len(clone)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 366, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 1949, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such table: django_site
+2025-09-30 17:58:46,093 django.request ERROR    Internal Server Error: /auth/login/
+Traceback (most recent call last):
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: django_site
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "E:\bcp\kanad-bcp-django\apps\accounts\views.py", line 58, in login_user
+    return render(request, 'auth/login.html', {'title': 'Login', 'user': user_cookie})
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 1016, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 977, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 1016, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 977, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 1016, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\base.py", line 977, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\template\library.py", line 321, in render
+    output = self.func(*resolved_args, **resolved_kwargs)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\templatetags\socialaccount.py", line 21, in provider_login_url
+    provider = adapter.get_provider(request, provider)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\adapter.py", line 212, in get_provider
+    app = self.get_app(request, provider=provider, client_id=client_id)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\adapter.py", line 295, in get_app
+    apps = self.list_apps(request, provider=provider, client_id=client_id)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\adapter.py", line 240, in list_apps
+    db_apps = SocialApp.objects.on_site(request)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\allauth\socialaccount\models.py", line 35, in on_site
+    site = get_current_site(request)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\contrib\sites\shortcuts.py", line 16, in get_current_site
+    return Site.objects.get_current(request)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\contrib\sites\models.py", line 59, in get_current
+    return self._get_site_by_id(site_id)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\contrib\sites\models.py", line 30, in _get_site_by_id
+    site = self.get(pk=site_id)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 629, in get
+    num = len(clone)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 366, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 1949, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\bcp\kanad-bcp-django\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such table: django_site

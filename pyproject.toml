@@ -1,0 +1,21 @@
+[project]
+name = "django-bootstrap-starter"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "arrow>=1.3.0",
+    "django>=5.2.5",
+    "django-allauth>=65.11.0",
+    "django-ckeditor>=6.7.3",
+    "django-compressor>=4.5.1",
+    "django-environ>=0.12.0",
+    "django-filter>=25.1",
+    "django-jazzmin>=3.0.1",
+    "gunicorn>=23.0.0",
+    "pillow>=11.3.0",
+    "requests>=2.32.5",
+    "user-agents>=2.2.0",
+    "whitenoise>=6.9.0",
+]

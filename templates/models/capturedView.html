@@ -1,0 +1,26 @@
+<div class="modal fade" id="captured{{res.id}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Screen Captured</h5>
+                <button type="button" class="close" data-id="{{res.id}}" aria-label="Close" onclick="resetVideo(this)">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                {% if res.captured %}
+                <video id="screencapture" width="100%" height="100%" controls>
+                    <source src="{{res.captured.url}}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                {% else %}
+                <p>Capture is not available for this result :(</p>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-id="{{res.id}}" onclick="resetVideo(this)">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

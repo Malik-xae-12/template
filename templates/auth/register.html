@@ -1,0 +1,121 @@
+{% extends 'Master/base.html' %} {% load static %} {% load socialaccount %} {% block title %}{{title}}
+{% endblock title %}
+{% block javascript %}
+<script>
+
+    const isNumeric = num => /^-?[0-9]+(?:\.[0-9]+)?$/.test(num + '');
+
+    function validatePassword(password) {
+        var re = /^[A-Za-z0-9]\w{7,}$/;
+        return re.test(password) && !isNumeric(password)
+    }
+
+    function validateUsername(username) {
+        var re = /^[A-Za-z0-9\@\/\.\/\+\/\-\/\_]\w{5,150}$/;
+        return re.test(username)
+    }
+
+    $('#username').on('change input', e => {
+        let username = e.target.value.trim()
+        $(e.target.parentElement).css('border-color', validateUsername(username) ? 'green' : 'red');
+    })
+    $('#password1').on('change input', (e) => {
+        let password = e.target.value.trim()
+        $(e.target.parentElement).css('border-color', validatePassword(password) ? 'green' : 'red');
+    });
+
+    $('.pshowhide').on('click', (e) => {
+        var type, password;
+        var icon = $(e.target)
+        var icon_name = icon.attr('class')
+        if (!icon_name.includes('pshowhide')) {
+            icon.attr('class', icon_name == 'fa fa-eye-slash' ? 'fa fa-eye' : 'fa fa-eye-slash')
+            password = icon.parent()[0].previousElementSibling
+        }
+        else {
+            icon_name = icon[0].firstElementChild.className
+            icon[0].firstElementChild.setAttribute('class', icon_name == 'fa fa-eye-slash' ? 'fa fa-eye' : 'fa fa-eye-slash')
+            password = icon[0].previousElementSibling
+        }
+        type = password.attributes['type'].value
+        password.setAttribute('type', type == 'password' ? 'text' : 'password')
+    })
+
+    $('#password2').on('change input', e => {
+        if ($('#password1').val() == $('#password2').val()) {
+            $(e.target.parentElement).css('border-color', 'green');
+        } else {
+            $(e.target.parentElement).css('border-color', 'red');
+            e.target.setCustomValidity('Passwords do not match');
+        }
+    })
+</script>
+{% endblock %}
+{% block content %}
+<div class="form mt-5">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="h4 text-center p-2" style="color:#194a8e"><i class="fa fa-person-circle-plus fa-3x"></i></div>
+            <form class="pt-3" action="" method="post">
+                {% csrf_token %}
+                <div class="form-group py-2 px-5 pb-2">
+                    <div class="input-field"> <span class="fa fa-user p-2"></span>
+                        <input type="text" placeholder="Username" required class="" name="uname" id="username">
+                        <i class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                            data-bs-trigger="hover" title="Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."></i>
+                    </div>
+                </div>
+                <div class="form-group py-2 px-5 pb-2">
+                    <div class="input-field"> <span class="fa fa-envelope p-2"></span>
+                        <input type="email" placeholder="Email" required class="" name="email">
+                    </div>
+                </div>
+                <div class="form-group py-2 px-5 pb-2">
+                    <div class="input-field"> <span class="fa fa-lock p-2"></span>
+                        <input type="password" id="password1" placeholder="Password" required class="" name="password1">
+                        <button type="button" class="btn btn-sm bg-white text-muted pshowhide">
+                            <span class="fa fa-eye-slash"></span>
+                        </button>
+                        <i class="fa fa-info-circle" data-bs-toggle="popover" data-bs-trigger="hover"
+                            data-bs-html="true" data-bs-content="
+                <ul class='smaller m-0 live-theme help-block'>
+                <li>Your password can’t be too similar to your other personal information.</li>
+                <li>Your password must contain at least 8 characters.</li>
+                <li>Your password can’t be a commonly used password.</li>
+                <li>Your password can’t be entirely numeric.</li>
+                </ul>
+                "></i>
+                    </div>
+                </div>
+                <div class="form-group py-2 px-5 pb-2">
+                    <div class="input-field"> <span class="fa fa-lock p-2"></span>
+                        <input type="password" id="password2" placeholder="Confirm Password" required class=""
+                            name="password2">
+                        <button type="button" class="btn btn-sm bg-white text-muted pshowhide">
+                            <span class="fa fa-eye-slash"></span>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-block my-3" style="color: var(--theme-text-color);">Sign
+                    Up</button>
+
+                <div class="text-center p-2 text-muted">Already a member? <a class="text-decoration-none"
+                        href="{% url 'login' %}">Sign In</a>
+                </div>
+            </form>
+        </div>
+        <div class="col-sm">
+            <div class="image-container">
+                <div class="content">
+                    <a href="#" class="text-decoration-none">One Logistics Hub</a>
+                    <p>
+                        Over an area of 27 acres of land, PKT has budgeted RM160 million as investment in One Logistics
+                        Hub
+                        which consists of The Ship, The Waves, The Lighthouse and The Sea of Pineapples.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

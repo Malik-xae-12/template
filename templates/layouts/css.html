@@ -1,0 +1,21 @@
+{% load static %} {% load compress %}
+<!-- CSS only -->
+<link href="{% static 'vendor/bootstrap.min.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'vendor/bootstrap-select.min.css' %}">
+
+{% compress css %}
+
+<!-- JS, Popper.js, and jQuery -->
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/theme-changer.css' %}">
+{% if user.is_authenticated %}
+<link rel="stylesheet" href="{% static 'css/navstyle.css' %}">
+{% endif %}
+
+<style>
+
+</style>
+{% endcompress %}
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">

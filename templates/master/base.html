@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <title>{% block title %} UBTI Assessment Application {% endblock %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:url" content="https://ubtiinc.com" />
+    <link rel="shortcut icon" href="{%  static 'icon.jpg' %}" type="image/svg+xml">
+
+
+    {% include 'Layouts/css.html' %}
+    {% block css %}
+    {% endblock %}
+    {% include 'Layouts/scripts.html' %}
+    {% block scripts %}
+    {% endblock %}
+</head>
+
+<body>
+    {% include 'Layouts/nav.html' %}
+    <section class="home-section">
+        <div id="base" class="content">
+            {% block content %}
+
+            {% endblock content %}
+        </div>
+    </section>
+    <div id="loader" class="spinner">
+    </div>
+    <div class="spacer"></div>
+    </div>
+
+    {% block javascript %}
+    {% endblock javascript %}
+
+</body>
+
+</html>

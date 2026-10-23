@@ -1,0 +1,126 @@
+{% extends 'master/auth_base.html' %}
+{% load static %}
+{% load socialaccount %}
+
+{% block title %}{{ title }}{% endblock title %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
+<style>
+body {
+    background-image: url("{% static 'bg.png' %}");
+    background-size: 100% 100%; 
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+}
+
+/* Center the form container */
+.form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    opacity: 0.80;
+}
+
+/* Logo container at top center */
+.logo-container {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    text-align: center;
+}
+
+.logo-container img {
+    height: 80px;
+    width: auto;
+}
+
+.logo-container h3 {
+    color: white;
+    margin-top: 20px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.form {
+    width: 35%;
+    max-width: 500px;
+    min-width: 300px;
+}
+</style>
+{% endblock css %}
+
+{% block javascript %}
+<script>
+    $('#signin-ms').on('click', () => {
+        $('#msform').submit()
+    })
+    $('#pshowhide').on('click', () => {
+        var type = $('#password').attr('type')
+        var icon = $('#passicon').attr('class')
+        $('#password').attr('type', type == 'password' ? 'text' : 'password')
+        $('#passicon').attr('class', icon == 'fa fa-eye-slash' ? 'fa fa-eye' : 'fa fa-eye-slash')
+    })
+</script>
+{% endblock %}
+
+{% block content %}
+<!-- Logo at top center -->
+<div class="logo-container">
+    <img src="{% static 'logo.png' %}" alt="Company Logo">
+    <h3>Kanad Business Continuity Application</h3>
+</div>
+<!--form area start-->
+<div class="form-container">
+    <div class="form mt-5 pb-2">
+        <!--login form start-->
+        <div class="h4 text-center p-2" style="color:#194a8e"><i class="fa fa-user-circle fa-3x"></i></div>
+        <form class="pt-3" action="" method="post">
+            {% csrf_token %}
+            <div class="form-group py-2 px-5 pb-2">
+                <div class="input-field"> <span class="fa fa-user p-2 me-2"></span>
+                    <input type="text" placeholder="Username or Email Address" required class="" name="username" value="{{user}}">
+                </div>
+            </div>
+            <div class="form-group py-2 px-5 pb-2">
+                <div class="input-field"> <span class="fa fa-lock p-2 me-2"></span>
+                    <input type="password" id="password" placeholder="Enter your Password" required class=""
+                        name="password">
+                    <button type="button" class="btn btn-sm bg-white text-muted" id="pshowhide">
+                        <span class="fa fa-eye-slash" id="passicon"></span>
+                    </button>
+                </div>
+            </div>
+            <div class="d-flex px-5 pt-2">
+                <!-- <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="rememberme" id="flexRadioChecked">
+                    <label class="form-check-label" for="flexRadioChecked">
+                        Remember me
+                    </label>
+                </div> -->
+
+                <!-- <div class="ms-auto">
+                    <a class="text-decoration-none" href="{% url 'password_reset' %}" id="forgot">Forgot
+                        Password?</a>
+                </div> -->
+            </div>
+            <button type="submit" class="btn btn-block my-3 live-theme">Log in</button>
+            <div class="text-center mt-3">
+                <a href="{% provider_login_url 'microsoft' %}" 
+                class="btn w-100 d-flex align-items-center justify-content-center">
+                    <img src="{% static 'microsoftlogo.png' %}" alt="Microsoft Logo" style="height: 20px; margin-right: 8px;">
+                    Continue with Microsoft
+                </a>
+            </div>
+        </form>
+        <!--login form end-->
+        </div>
+    </div>
+</div>
+<!--form area end-->
+{% endblock content %}

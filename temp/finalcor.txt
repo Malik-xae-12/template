@@ -1,0 +1,281 @@
+worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+
+    server {
+        listen       443 ssl;
+        server_name  bcp.kanadhospital.org;  # Replace with your domain
+
+        ssl_certificate      C:\nginx-1.29.1\SSL\server.crt;
+        ssl_certificate_key  C:\nginx-1.29.1\SSL\server.key;
+
+        ssl_session_cache    shared:SSL:1m;
+        ssl_session_timeout  5m;
+
+        ssl_ciphers  HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers  on;
+
+        location / {
+            proxy_pass         http://127.0.0.1:8000;  # Waitress backend
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Proto $scheme;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+changed 
+
+
+
+
+nginx: the configuration file C:\nginx-1.29.1/conf/nginx.conf syntax is ok
+nginx: [emerg] CreateDirectory() "C:\nginx-1.29.1/temp/client_body_temp" failed (3: The system cannot find the path specified)
+nginx: configuration file C:\nginx-1.29.1/conf/nginx.conf test failed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+server {
+    listen 8000 ssl;
+    listen [::]:8000 ssl;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+
+    server_name localhost;
+    
+    ssl_certificate      C:\cert\localhost.crt;
+    ssl_certificate_key  C:\cert\localhost.key;
+
+    ssl_session_cache    shared:SSL:1m;
+    ssl_session_timeout  5m;
+
+    ssl_ciphers  HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers  on;
+        
+    location / {
+        proxy_set_header        Host $host:$server_port;
+        proxy_set_header        X-Real-IP $remote_addr;
+        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header        X-Forwarded-Proto $scheme; 
+        proxy_set_header        Upgrade $http_upgrade;
+        proxy_set_header        Connection "upgrade";
+        proxy_pass              http://localhost:3000/;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+To add the domain `bcp.kanadhospital.org` to your Windows hosts file and point it to `127.0.0.1`, follow these steps:
+
+1. Open Notepad as Administrator:
+   - Click Start, type "Notepad".
+   - Right-click on Notepad and select "Run as administrator".
+
+2. In Notepad, open the hosts file:
+   - Navigate to `C:\Windows\System32\drivers\etc\`.
+   - In the file open dialog, choose "All Files" to see the hosts file.
+   - Select the "hosts" file and open it.
+
+3. Add a new line at the end of the file:
+   ```
+   127.0.0.1 bcp.kanadhospital.org
+   ```
+
+4. Save the file and close Notepad.
+
+5. To make sure Windows uses the updated hosts file immediately, flush the DNS cache:
+   - Open Command Prompt as Administrator.
+   - Run the command:
+     ```
+     ipconfig /flushdns
+     ```
+
+Now, when you enter `https://bcp.kanadhospital.org` in your browser, it will resolve to your local machine (127.0.0.1).[1][2][4]
+
+[1](https://kinsta.com/knowledgebase/windows-10-hosts-file/)
+[2](https://kb.leaseweb.com/kb/web-hosting/hosting-web-hosting-adding-a-website-to-hosts-file-and-testing-it/)
+[3](https://www.i2k2.com/blog/configure-hosts-file-windows-server/)
+[4](https://www.liquidweb.com/blog/edit-hosts-file-macos-windows-linux/)
+[5](https://www.youtube.com/watch?v=7WzOtYfsVAM)
+[6](https://ecompile.io/blog/localhost-custom-domain-name)
+[7](https://acquia.my.site.com/s/article/360004175973-Using-an-etc-hosts-file-for-custom-domains-during-development)
+[8](https://answers.microsoft.com/en-us/windows/forum/all/host-file/02799272-f9fc-4492-9060-315ed1f3e718)
+[9](https://provisiondata.com/kb/using-etchosts-file-custom-domains-development/)
+[10](https://docs.rackspace.com/docs/modify-your-hosts-file)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+server {
+    listen 80;
+    server_name example.com; # or your server IP
+
+    location /static/ {
+        alias /path/to/your/django/static/;
+    }
+    location / {
+        proxy_pass http://127.0.0.1:8000; # Waitress is listening here
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Here are step-by-step instructions to connect a Waitress/Django application to Nginx on Windows:
+
+### Step 1: Install Nginx on Windows
+- Download Nginx from the official site.
+- Extract it to a folder, e.g., `C:\nginx`.
+- Nginx config files will be in `C:\nginx\conf`.
+
+### Step 2: Prepare Your Django Application
+- Ensure your Django app is ready and using Waitress as the WSGI server.
+- Run your app with Waitress on a chosen port (e.g., 8000):
+  ```
+  waitress-serve --port=8000 myproject.wsgi:application
+  ```
+- Confirm your app is reachable at `http://127.0.0.1:8000`.
+
+### Step 3: Create Nginx Site Configuration
+- Inside `C:\nginx\conf\`, create two folders: `sites-available` and `sites-enabled`.
+- Create your site config file in `C:\nginx\conf\sites-available\yourproject.conf` with contents like:
+  ```
+  server {
+      listen 80;
+      server_name localhost;
+
+      location /static/ {
+          alias C:/path/to/your/django/static/;
+      }
+
+      location / {
+          proxy_pass http://127.0.0.1:8000;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+      }
+  }
+  ```
+
+### Step 4: Enable Site Configuration
+- Create a symbolic link or shortcut in `C:\nginx\conf\sites-enabled` pointing to your config file in `sites-available`.
+- On Windows Command Prompt (run as Administrator):
+  ```
+  mklink C:\nginx-1.29.1\conf\confsites-enabled\root.conf C:\nginx-1.29.1\conf\sites-available\root.conf
+  mklink C:\nginx-1.29.1\conf\sites-enabled\root.conf C:\nginx-1.29.1\conf\sites-available\root.conf
+  ```
+
+### Step 5: Modify `nginx.conf` to Include Enabled Sites
+- Edit `C:\nginx\conf\nginx.conf`.
+- Inside the `http { ... }` block, add:
+  ```
+  include conf/sites-enabled/*;
+  ```
+
+### Step 6: Restart Nginx
+- Open Command Prompt and navigate to `C:\nginx`.
+- Run:
+  ```
+  nginx -s reload
+  ```
+
+### Step 7: Verify Setup
+- Visit your server domain or localhost in a browser.
+- Nginx should reverse proxy requests to Waitress/Django.
+
+This setup uses 127.0.0.1 (localhost) to proxy traffic internally between Nginx and Waitress on Windows, organizing configurations under the `sites-available` and `sites-enabled` folders inside the Nginx `conf` directory for clarity and manageability.[7][8][10][11]
+
+[1](https://www.guguweb.com/2019/11/13/django-nginx-deploy-your-django-project-on-a-production-server/)
+[2](https://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html)
+[3](https://www.alibabacloud.com/help/en/ecs/use-cases/use-nginx-and-uwsgi-to-deploy-a-django-project)
+[4](https://realpython.com/django-nginx-gunicorn/)
+[5](https://blog.devops.dev/deploying-a-django-app-with-nginx-a-beginners-guide-1fac0cb66546)
+[6](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu)
+[7](https://www.youtube.com/watch?v=BBKq6H9Rm5g)
+[8](https://stackoverflow.com/questions/21071494/how-to-run-django-with-nginx-on-a-windows-machine)
+[9](https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/Django/Deployment)
+[10](https://stackoverflow.com/questions/13070986/nginx-windows-setting-up-sites-available-configs)
+[11](https://betterstack.com/community/questions/nginx-missing-site-available-directory/)
+
+
+
+
