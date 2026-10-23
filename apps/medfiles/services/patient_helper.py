@@ -1,13 +1,14 @@
+import os
 import time
 import json
 import requests
 from azure.identity import ClientSecretCredential
 
 # Microsoft Entra (Azure AD) credentials
-tenant_id = 
-client_id =   
-client_secret = 
-scope = 
+tenant_id = os.getenv("AZURE_TENANT_ID", "")
+client_id = os.getenv("AZURE_CLIENT_ID", "")
+client_secret = os.getenv("AZURE_CLIENT_SECRET", "")
+scope = [os.getenv("AZURE_SCOPE", "https://api.fabric.microsoft.com/.default")]
 
 # Microsoft Fabric GraphQL API endpoint
 graphql_api_url = "https://27123242df7241f7822b0b14db152c20.z27.graphql.fabric.microsoft.com/v1/workspaces/27123242-df72-41f7-822b-0b14db152c20/graphqlapis/83b6e009-3d9d-4f09-a547-c52dc56c8c57/graphql"

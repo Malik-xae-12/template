@@ -371,14 +371,18 @@ DEFAULT_FROM_EMAIL = env('EMAIL_HOST_USER')
 #     }
 # }
 
+MICROSOFT_CLIENT_ID = env("MICROSOFT_CLIENT_ID", default="")
+MICROSOFT_SECRET = env("MICROSOFT_SECRET", default="")
+MICROSOFT_TENANT = env("MICROSOFT_TENANT", default="")
+
 SOCIALACCOUNT_PROVIDERS = {
     "microsoft": {
         "APPS": [
             {
-                "client_id": env("MICROSOFT_CLIENT_ID", default=""),  
-                "secret": env("MICROSOFT_SECRET", default=""),  
+                "client_id": MICROSOFT_CLIENT_ID,  
+                "secret": MICROSOFT_SECRET,  
                 "settings": {
-                    "tenant": env("MICROSOFT_TENANT", default="organizations"),  
+                    "tenant": MICROSOFT_TENANT,  
                     "login_url": "https://login.microsoftonline.com",
                     "graph_url": "https://graph.microsoft.com",
                 }
